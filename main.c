@@ -70,30 +70,36 @@ set_connected_outputs(
   XCloseDisplay(display);
 }
 
+char cmd[1024] = "xrandr";
+
 void
-run(
+append_to_xrandr_command(
+  struct output output,
+  char *args_template
+) {
+  size_t len = output.name_length + strlen(args_template) - 1;
+  char args[len];
+  snprintf(args, len, args_template, output.name);
+  strcat(cmd, args);
+}
+
+void
+prepare_xrandr_command(
   void
 ) {
-  char cmd[1024] = "xrandr";
-
   for (uint i = 0; i < output_count; i++) {
-    struct output output = outputs[i];
-
-    if (output.primary) {
-      char *template = " --output %s --primary --auto";
-      size_t len = output.name_length + strlen(template) - 1;
-      char args[len];
-      snprintf(args, len, template, output.name);
-      strcat(cmd, args);
+    if (outputs[i].primary) {
+      append_to_xrandr_command(outputs[i], " --output %s --primary --auto");
     } else {
-      char *template = " --output %s --off";
-      size_t len = output.name_length + strlen(template) - 1;
-      char args[len];
-      snprintf(args, len, template, output.name);
-      strcat(cmd, args);
+      append_to_xrandr_command(outputs[i], " --output %s --off");
     }
   }
+}
 
+void
+run_xrandr_command(
+  void
+) {
 #ifdef DEBUG
   printf("%s\n", cmd);
 #else
@@ -131,7 +137,8 @@ int main(
     outputs[0].primary = true;
   }
 
-  run();
+  prepare_xrandr_command();
+  run_xrandr_command();
 
   return EXIT_SUCCESS;
 }
