@@ -35,12 +35,8 @@ set_connected_outputs(
   char *argv[]
 ) {
   Display *display = XOpenDisplay(NULL);
-
-  XRRScreenResources *screen_resources =
-    XRRGetScreenResources(
-      display,
-      RootWindow(display, DefaultScreen(display))
-    );
+  Window root = RootWindow(display, DefaultScreen(display));
+  XRRScreenResources *screen_resources = XRRGetScreenResources(display, root);
 
   for (int i = 0; i < screen_resources->noutput; i++) {
     XRROutputInfo *output_info =
